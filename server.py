@@ -19,7 +19,7 @@
 #  DEALINGS IN THE SOFTWARE.
 
 import csv
-# from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
+#from BaseHTTPServer import BaseHTTPRequestHandler,HTTPServer
 import http.server
 import json
 import operator
@@ -27,10 +27,9 @@ import os.path
 import re
 import threading
 from datetime import timedelta, datetime
-# from itertools import izip
+#from itertools import izip
 from random import normalvariate, random
 from socketserver import ThreadingMixIn
-
 import dateutil.parser
 
 ################################################################################
