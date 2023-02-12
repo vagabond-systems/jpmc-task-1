@@ -31,8 +31,6 @@ from datetime import timedelta, datetime
 from random import normalvariate, random
 from socketserver import ThreadingMixIn
 
-import dateutil.parser
-
 ################################################################################
 #
 # Config
@@ -136,7 +134,7 @@ def order_book(orders, book, stock_name):
     """
     for t, stock, side, order, size in orders:
         if stock_name == stock:
-            new = add_book(book.get(side, []), order, size)
+            new = add_book(book.get(side,[]), order, size)
             book[side] = sorted(new, reverse=side == 'buy', key=lambda x: x[0])
         bids, asks = clear_book(**book)
         yield t, bids, asks
@@ -156,7 +154,7 @@ def generate_csv():
             writer.writerow([t, stock, side, order, size])
 
 
-def read_csv():
+def read_csv(dateutil=None):
     """ Read a CSV or order history into a list. """
     with open('test.csv', 'rt') as f:
         for time, stock, side, order, size in csv.reader(f):
