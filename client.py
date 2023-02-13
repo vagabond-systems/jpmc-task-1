@@ -64,8 +64,9 @@ if __name__ == "__main__":
         for quote in quotes:
             stock, bid_price, ask_price, price = getDataPoint(quote)
             prices[stock] = price
-            # I changed both lines of code to take in formatted strings to make the line more readable and clean.
-            # Output is still the same as entended
-            print(f"Quoted {stock} at (bid:{bid_price}, ask:{ask_price}, price:{price})")
-        print(f"Ratio {getRatio(prices['ABC'], prices['DEF'])}")
 
+            # I changes both lines of code to take in formatted strings to make the line more readable and clean.
+            # I would of used f'' strings but its not compatible with python 2.8.2 my system is on python 3.9.7
+            # Output is still the same as entended
+            print("Quoted {} at (bid:{}, ask:{}, price:{})".format(stock, bid_price, ask_price, price))
+        print("Ratio {}".format((getRatio(prices['ABC'], prices['DEF']))))
