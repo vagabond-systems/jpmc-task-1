@@ -35,25 +35,38 @@ def getDataPoint(quote):
     stock = quote['stock']
     bid_price = float(quote['top_bid']['price'])
     ask_price = float(quote['top_ask']['price'])
-    price = bid_price
-    return stock, bid_price, ask_price, price
+
+    #average price here
+    price = (bid_price + ask_price) / 2
+
+    #tuple here
+    return (stock, bid_price, ask_price, price)
 
 
 def getRatio(price_a, price_b):
     """ Get ratio of price_a and price_b """
     """ ------------- Update this function ------------- """
-    return 1
+    # to prevent error message
+    if (price_b == 0):
+        return
+    # returns the ratio
+    return price_a / price_b
 
 
 # Main
 if __name__ == "__main__":
     # Query the price once every N seconds.
-    for _ in iter(range(N)):
+    for _ in range(N):
         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
 
         """ ----------- Update to get the ratio --------------- """
+        prices = {}
         for quote in quotes:
             stock, bid_price, ask_price, price = getDataPoint(quote)
-            print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+            prices[stock] = price
 
-        print("Ratio %s" % getRatio(price, price))
+            # I changes both lines of code to take in formatted strings to make the line more readable and clean.
+            # I would of used f'' strings but its not compatible with python 2.8.2 my system is on python 3.9.7
+            # Output is still the same as entended
+            print("Quoted {} at (bid:{}, ask:{}, price:{})".format(stock, bid_price, ask_price, price))
+        print("Ratio {}".format((getRatio(prices['ABC'], prices['DEF']))))
