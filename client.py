@@ -60,7 +60,7 @@ if __name__ == "__main__":
             prices[stock] = price
 
         # calculate ratio of two different stocks
-        stock_a, stock_b = random.sample(prices.keys(), 2)
+        stock_a, stock_b = random.sample(list(prices.keys()), 2)
         price_a, price_b = prices[stock_a], prices[stock_b]
         ratio = getRatio(price_a, price_b)
 
