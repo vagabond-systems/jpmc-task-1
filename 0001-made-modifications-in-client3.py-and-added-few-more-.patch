@@ -1,0 +1,235 @@
+From d945987014f23ebf664c0dfe08362725c0a7e83f Mon Sep 17 00:00:00 2001
+From: bhooshanmate <bhooshanmate@gmail.com>
+Date: Fri, 26 May 2023 00:20:33 +0530
+Subject: [PATCH] made modifications in client3.py and added few more test
+ cases
+
+---
+ .venv/bin/python                        |   1 +
+ .venv/bin/python3                       |   1 +
+ .venv/bin/python3.10                    |   1 +
+ .venv/lib64                             |   1 +
+ .venv/pyvenv.cfg                        |   3 +++
+ .vscode/settings.json                   |  11 +++++++++
+ __pycache__/client3.cpython-310.pyc     | Bin 0 -> 1150 bytes
+ __pycache__/client_test.cpython-310.pyc | Bin 0 -> 1872 bytes
+ client3.py                              |  12 ++++++----
+ client_test.py                          |  29 +++++++++++++++++++++---
+ 10 files changed, 52 insertions(+), 7 deletions(-)
+ create mode 120000 .venv/bin/python
+ create mode 120000 .venv/bin/python3
+ create mode 120000 .venv/bin/python3.10
+ create mode 120000 .venv/lib64
+ create mode 100644 .venv/pyvenv.cfg
+ create mode 100644 .vscode/settings.json
+ create mode 100644 __pycache__/client3.cpython-310.pyc
+ create mode 100644 __pycache__/client_test.cpython-310.pyc
+
+diff --git a/.venv/bin/python b/.venv/bin/python
+new file mode 120000
+index 0000000..f140426
+--- /dev/null
++++ b/.venv/bin/python
+@@ -0,0 +1 @@
++/bin/python
+\ No newline at end of file
+diff --git a/.venv/bin/python3 b/.venv/bin/python3
+new file mode 120000
+index 0000000..d8654aa
+--- /dev/null
++++ b/.venv/bin/python3
+@@ -0,0 +1 @@
++python
+\ No newline at end of file
+diff --git a/.venv/bin/python3.10 b/.venv/bin/python3.10
+new file mode 120000
+index 0000000..d8654aa
+--- /dev/null
++++ b/.venv/bin/python3.10
+@@ -0,0 +1 @@
++python
+\ No newline at end of file
+diff --git a/.venv/lib64 b/.venv/lib64
+new file mode 120000
+index 0000000..7951405
+--- /dev/null
++++ b/.venv/lib64
+@@ -0,0 +1 @@
++lib
+\ No newline at end of file
+diff --git a/.venv/pyvenv.cfg b/.venv/pyvenv.cfg
+new file mode 100644
+index 0000000..9f0ea7c
+--- /dev/null
++++ b/.venv/pyvenv.cfg
+@@ -0,0 +1,3 @@
++home = /bin
++include-system-site-packages = false
++version = 3.10.6
+diff --git a/.vscode/settings.json b/.vscode/settings.json
+new file mode 100644
+index 0000000..65d939f
+--- /dev/null
++++ b/.vscode/settings.json
+@@ -0,0 +1,11 @@
++{
++    "python.testing.unittestArgs": [
++        "-v",
++        "-s",
++        ".",
++        "-p",
++        "*test.py"
++    ],
++    "python.testing.pytestEnabled": false,
++    "python.testing.unittestEnabled": true
++}
+\ No newline at end of file
+diff --git a/__pycache__/client3.cpython-310.pyc b/__pycache__/client3.cpython-310.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..8a8b0e3934b2969e950f4481ac4aae7cca3a4bd1
+GIT binary patch
+literal 1150
+zcmYjQPjeeJ6qk0j_Bydk+NMbj90WrPW=LIz10~Z^Xwx#oOfzXS9J&Lu$kwyH$$I5T
+zGE9wgGM|HSZgA&A@ELUF)O$~yc#@M$wWIe(`}XPge($Ynwblr(zyDP7j|L(Cdgtwh
+zXXG2)<{uQ2NLrF?rD;ZkA7!zOGA83JkxVAPldL9dvW~hAsZ5U}{c}OG2CTt4Bn!Hr
+zd*r7FSrf>z1@Y09<vYNZ8$g%zjGWOky1eRjcCA6+8b;pCu0sv3FX)df+stlcTiG^j
+zLjyMN6Syf+!wuMi?E%{&3rfk!S9rPxb!f=-HbL2JlSOp??juPLv4TU=X}!j3$o}ku
+zk+qZEZnso@QI3?cyZ7$iyW2gPf`0X|kPm)4E#6Q<`nWGwf)>O57`J(ZqCw`EwM|Z`
+z^;Xm-GR9l!X%u{R>BsYE9&Zzwyhl#ioO*B01`P4kW?%9Ht>m;1T$ClZBj6Q)1j&C9
+z<rECJiVvXzEi6WGDXf^NqO#m2#;X3Yt6Me6dxdn#L>GNn`NAB(ju2sox@1r)VLORS
+zPNvF&_Q$S)ALOg}2F9*T?Th=1=yg>8J?xIu7`nZYQf4Ho?)L}Jlpc!esnTKy-9b=0
+zN0V`X$NUOA7PIVp-tCtKRQ8KIlUJ@e1iOc54+2_DX__daD5V?tH1W|bJm`Bo7b`}?
+z`+?zi(Ljc&q&P`+866_WbBYW`bF@40>_h$?SdPRLimL$+<>Z2kN}k(2u6_UZLq(m~
+z)z3pNjGjxv*Wvw2c#JMZ=r4TQPth~}H}S9;^;=&J5qUlqMV05XkDq&1CBJ33u>2F`
+zb@!I}j3XUEha1uA%+in%<6QjhqsK1Zd-Al?cI?Qg%GET2R%3T%s>`zI-O+%9XsoNP
+ze3v}`;mM1aj_wD_E+JH640-Nq;S%Fmf$jArRYPzzcL_FL8dtx_R>y2=0(c#EZ!D~1
+z8iaJUFc(IrSXh`2?SFmk%MKF}2CK4fk>m$Nub8?&#@Q|5YtOT}jUwGlJx?)<(>PsA
+U8!XzOoUYoQ(k=Ra#NM#@e<5lkQvd(}
+
+literal 0
+HcmV?d00001
+
+diff --git a/__pycache__/client_test.cpython-310.pyc b/__pycache__/client_test.cpython-310.pyc
+new file mode 100644
+index 0000000000000000000000000000000000000000..a44bbb3af77e4188b69f7d43cc31a74414746c02
+GIT binary patch
+literal 1872
+zcmcgt&2Jk;6rY*hwKs{Kgd~(SEsZJV!wODpr>T{yLQc{zMG&QJP8R8EvomqF{#bWr
+ztrp9^kd`ByK|R1R2jI$?bNdg>4RMGfxNv|&4#0c6O_R1k6&J>upWnRa_jdNZ-+K<y
+z>3#z1=63=A!6xJvJRDsn9LliOA^<0x)=34wS)Ddmg*A+dLCH134Q@Ul+!W-FxouP|
+zk>FO1$w@)JNq$Qx_}z+jHn9hB$V!&!R8@qR-OybP{AQ?aINfwZKk(3gbTK%TVXJom
+z1gTI?DvVRk9*~L=KeuA`5pMAWXe^$*MY6W;U#k0}8LkNxdK4TFRsw`1>?PRh3jmD7
+zjYo`|7$K69+~$3cEZ)xto?22o{nRpumMZJfJ`$2H<wGaQHtn%U9*$&#zt%JPNYCmr
+zh+}cuH8;%~Q}fG&k8ab?XxHF_JjMIFR;0gjpyvc`KDM&^<T0#|ZkPAY!S!~Swp!Bn
+zgf^Am5&ILxd|^J9FXjq`OtE+|f8pY6etND{JU=(PJNfX}8$X@_#|Aj=59X%}`T6<M
+z`3v)<QmLSgg~g>EODDsi<+!S*`$E3~*>M}KShwMG&0t$947}RzZxHHX4T2#9cCY{3
+z8T<a;dU@{#oV0QI%2kP3-9xDU`Ti$g{xo;Hy!-W6uzp`Jch0SCiHzsgy>{IV1<yop
+zknvTf8H5=xkWzTz^bVC++iU_}P1HAa;%++#h0;Ufehch^J5s22J=DYEz9(9TilQFa
+z^rZ@&I58<Dyr9YB(+-huL(u)DnXRB9W;V8hKyA6rndQ}w16g&OR|Dx*#mr{(mAlhw
+zcsX@X<U+_ut}x?8q;cRD;dJX$ok77l%2VgrORZv2EO?X}1DIeF)clK?DVm}te8%Z%
+z+L=1!;Pk5^{X0oNhw%R!NlVM*C4w%XE+XgXN;M+q<Mpz{Mv~Y`5(kJJKu95^5e5;4
+z5MD<(f$#>xIKoK;q>h{bi23se#5{$n(*W6od=up}2$KNFf#*n3ly9N!ECLoh2J9GJ
+zcvY?!eSS>}Af{XcYAmSQ2)G?v#xW>l=hA;D<4d8Rt1GsW0XrH#*FoU42ji#5y0ptq
+zk)DBLq|3Hh*MNaB3WLGGfx%7ql@$*ev~toW>g+Qsj*Y~ML@q{U=!{7mq%X8vTnJ2h
+zmP))t){JtjlTjBr?t!qO2M=?NfnLmS`XIm2yv8ypEVs!_YSR<cG)y`{JLAV>Epk|a
+zhPNH3={AJp=zhm(1iW2GIpsKa+ipF!$af&7d=Fs?;jqY&gq4<<PuvPAXcL>-X_ij0
+zNRQ8GxPH@d;NQS*H~kQ=t&?$!&qkvs%7eDoz_8>h5&6jvAeJ`K^|)th`%--04>6Sr
+Q8E=zeI>PKJ=={I`0qP>(z5oCK
+
+literal 0
+HcmV?d00001
+
+diff --git a/client3.py b/client3.py
+index 3fc09b7..3b2a56e 100644
+--- a/client3.py
++++ b/client3.py
+@@ -35,25 +35,29 @@ def getDataPoint(quote):
+     stock = quote['stock']
+     bid_price = float(quote['top_bid']['price'])
+     ask_price = float(quote['top_ask']['price'])
+-    price = bid_price
++    price = (bid_price+ask_price)/2
+     return stock, bid_price, ask_price, price
+ 
+ 
+ def getRatio(price_a, price_b):
+     """ Get ratio of price_a and price_b """
+     """ ------------- Update this function ------------- """
+-    return 1
+-
++    if(price_b == 0):
++        return 
++    ratio = price_a/price_b
++    return ratio
+ 
+ # Main
+ if __name__ == "__main__":
+     # Query the price once every N seconds.
++    prices = {}
+     for _ in iter(range(N)):
+         quotes = json.loads(urllib.request.urlopen(QUERY.format(random.random())).read())
+ 
+         """ ----------- Update to get the ratio --------------- """
+         for quote in quotes:
+             stock, bid_price, ask_price, price = getDataPoint(quote)
++            prices[stock] = price
+             print("Quoted %s at (bid:%s, ask:%s, price:%s)" % (stock, bid_price, ask_price, price))
+ 
+-        print("Ratio %s" % getRatio(price, price))
++        print("Ratio %s" % getRatio(prices["ABC"], prices["DEF"]))
+diff --git a/client_test.py b/client_test.py
+index af2bf26..4046a28 100644
+--- a/client_test.py
++++ b/client_test.py
+@@ -1,5 +1,5 @@
+ import unittest
+-from client3 import getDataPoint
++from client3 import getDataPoint, getRatio
+ 
+ class ClientTest(unittest.TestCase):
+   def test_getDataPoint_calculatePrice(self):
+@@ -8,6 +8,12 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
++    expected_result = getDataPoint(quotes[0])
++    excepted_result2 = getDataPoint(quotes[1])
++    first_price = (121.2+120.48)/2
++    second_price = (121.68+117.87)/2
++    assert expected_result == ("ABC",120.48,121.2,first_price), "The calculated price is not correct."
++    assert excepted_result2 == ("DEF",117.87,121.68,second_price), "The calculated price is not correct."
+ 
+   def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+     quotes = [
+@@ -15,9 +21,26 @@ class ClientTest(unittest.TestCase):
+       {'top_ask': {'price': 121.68, 'size': 4}, 'timestamp': '2019-02-11 22:06:30.572453', 'top_bid': {'price': 117.87, 'size': 81}, 'id': '0.109974697771', 'stock': 'DEF'}
+     ]
+     """ ------------ Add the assertion below ------------ """
+-
+-
++    expected_result = getDataPoint(quotes[0])
++    expected_result2 = getDataPoint(quotes[1])
++    first_price = (119.2+120.48)/2
++    second_price = (117.87+121.68)/2
++    assert expected_result == ("ABC",120.48,119.2,first_price)
++    assert expected_result2 == ("DEF",117.87,121.68,second_price)
++    
+   """ ------------ Add more unit tests ------------ """
++  
++  def test_getRatio(self):
++    # test case 1: price_b is non-zero
++    price_a = 121.2
++    price_b = 120.48
++    expected_ratio = price_a/price_b
++    assert getRatio(price_a,price_b) == expected_ratio, "ratio is not correct"
++    
++    # test case 2: price_b is non-zero
++    price_a = 121.68
++    price_b = 0
++    assert getRatio(price_a,price_b) is None,"ratio is not correct"
+ 
+ 
+ 
+-- 
+2.34.1
+
