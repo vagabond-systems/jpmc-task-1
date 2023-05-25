@@ -37,7 +37,7 @@ class ClientTest(unittest.TestCase):
     expected_ratio = price_a/price_b
     assert getRatio(price_a,price_b) == expected_ratio, "ratio is not correct"
     
-    # test case 2: price_b is non-zero
+    # test case 2: price_b zero
     price_a = 121.68
     price_b = 0
     assert getRatio(price_a,price_b) is None,"ratio is not correct"
