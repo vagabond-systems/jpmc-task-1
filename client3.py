@@ -64,3 +64,14 @@ if __name__ == "__main__":
 
         print("Ratio %s" % getRatio(price, price))
         print ("Ratio %s" % getRatio(prices['ABC'], prices['DEF']))
+import unittest
+import getDataPoint
+import getDataPoint, getRatio
+class ClientTest(unittest.TestCase):
+    def test_getDataPoint_calculatePrice(self):
+        for quote in quotes:
+            self.assertEqual(getDataPoint(quote), (quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2))
+    def test_getDataPoint_calculatePriceBidGreaterThanAsk(self):
+        for quote in quotes:
+            self.assertEqual(getDataPoint(quote), (quote['stock'], quote['top_bid']['price'], quote['top_ask']['price'], (quote['top_bid']['price'] + quote['top_ask']['price'])/2))
+                
