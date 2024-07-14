@@ -341,6 +341,20 @@ if __name__ == '__main__':
 
 
 
+def class_code_comparision(row):
+        if pd.notnull(row["RETN_CLS_MV"]):
+            if isinstance(row["RETN_CLS_MV"], str) and isinstance(
+                row["RCRD_CLS_CD"], str
+            ):
+                datafit_class_codes = row["RETN_CLS_MV"].split(",")
+                data_aset_inv_class_codes = row["RCRD_CLS_CD"].split("; ")
+                result = bool(set(datafit_class_codes) & set(data_aset_inv_class_codes))
+                return "Yes" if result else "No"
+            else:
+                return "No"
+        else:
+            return "No"
+
 
 def appl_lvl_class_code_comparision(group):
         aset_ids_count = list(group["ASET_ID"].values)
