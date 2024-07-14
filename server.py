@@ -400,3 +400,347 @@ def appl_lvl_class_code_comparision(group):
         return group
 
 
+
+from reports.core.report import baseReport
+from reports.data_pipeline_report.config import reportConfig
+from flask import Blueprint, request, current_app
+from datetime import datetime, timedelta
+from itertools import permutations
+
+import pandas as pd
+
+DELIM = ','
+
+data_pipeline_report_app = Blueprint('data_pipeline_report', __name__)
+
+class DataPipelineReport(baseReport):
+
+    def __init__(self, request):
+        super().__init__(request)
+
+    def get_report_config(self):
+        """
+        """
+        self.report_config = reportConfig()
+
+    @staticmethod
+    def flatten_seal_data(df):
+        seal_data_dict = {}
+        json_records = df.to_dict('records')
+        for record in json_records:
+            seal_data_dict[int(record['APPL_SYS_ID'])] = record
+        return seal_data_dict
+
+    @staticmethod
+    def flatten_src_appl_seal_data(seal_ids_values_list, seal_data_dict):
+        data_dict_list = []
+        for src_appl_sys_id in seal_ids_values_list:
+            appl_sys_nm, tech_grp_nm = [], []
+            if src_appl_sys_id:
+                for app_sys_id in src_appl_sys_id.split(','):
+                    app_sys_id = int(app_sys_id) if app_sys_id.isnumeric() else None
+                    if app_sys_id and app_sys_id in seal_data_dict:
+                        seal_data_obj = seal_data_dict[app_sys_id]
+                        appl_sys_nm.append(seal_data_obj['APPL_SYS_NM'])
+                        tech_grp_nm.append(seal_data_obj['APPL_TECH_GP_OWNR_NM'])
+            data_dict_list.append({
+                "PPLN_SRC_APPL_SYS_MV" : src_appl_sys_id,
+                "SRC_APPL_SYS_NM": DELIM.join(appl_sys_nm),
+                "SRC_APPL_TECH_GP_OWNR_NM" : DELIM.join(tech_grp_nm)
+                })
+        return pd.DataFrame(data_dict_list)
+
+    @staticmethod
+    def flatten_ownr_appl_seal_data(seal_ids_values_list, seal_data_dict):
+        data_dict_list = []
+        for ownr_appl_sys_id in seal_ids_values_list:
+            appl_sys_nm, tech_grp_nm, lob_cd = [], [], []
+            appl_ownr_sid, info_ownr_sid, cto_sid = [], [], []
+            if ownr_appl_sys_id:
+                for app_sys_id in ownr_appl_sys_id.split(','):
+                    app_sys_id = int(app_sys_id) if app_sys_id.isnumeric() else None
+                    if app_sys_id and app_sys_id in seal_data_dict:
+                        seal_data_obj = seal_data_dict[int(app_sys_id)]
+                        appl_sys_nm.append(seal_data_obj['APPL_SYS_NM'])
+                        tech_grp_nm.append(seal_data_obj['APPL_TECH_GP_OWNR_NM'])
+                        appl_ownr_sid.append(seal_data_obj['APPL_OWNR_SID'])
+                        info_ownr_sid.append(seal_data_obj['INFO_OWNR_SID'])
+                        cto_sid.append(seal_data_obj['CTO_SID'])
+                        lob_cd.append(seal_data_obj['APPL_LOB_CD'])
+            data_dict_list.append({
+                "PPLN_OWNR_APPL_SYS_MV" : ownr_appl_sys_id,
+                "OWNR_APPL_SYS_NM": DELIM.join(appl_sys_nm),
+                "OWNR_APPL_TECH_GP_OWNR_NM" : DELIM.join(tech_grp_nm),
+                "OWNR_APPL_OWNR_SID" : DELIM.join(appl_ownr_sid),
+                "OWNR_INFO_OWNR_SID" : DELIM.join(info_ownr_sid),
+                "OWNR_CTO_SID" : DELIM.join(cto_sid),
+                "OWNR_APPL_LOB_CD" : DELIM.join(lob_cd)
+                })
+        return pd.DataFrame(data_dict_list)
+
+    @staticmethod
+    def flatten_ppln_ownr_appl_sys_mv(df):
+        temp_list = []
+        data_columns = df.columns
+        json_records = df.to_dict('records')
+        ### "PPLN_OWNR_APPL_SYS_MV":"89955","PPLN_ownr_APPL_SYS_MV":null
+        for record in json_records:
+            ownr_appl_sys_id = record['PPLN_OWNR_APPL_SYS_MV']
+            del record['PPLN_OWNR_APPL_SYS_MV']
+            for app_sys_id in ownr_appl_sys_id.split(','):
+                temp_dict = record.copy()
+                if app_sys_id.isnumeric():
+                    temp_dict.update({
+                        "APPL_SYS_ID": int(app_sys_id),
+                        })
+                    temp_list.append(temp_dict)
+
+        return pd.DataFrame(temp_list)
+
+    @staticmethod
+    def get_file_tdq_ovrd_in_cnts(df):
+        combined_list = []
+        for record in df.to_dict(orient="records"):
+            if record['CNT_Y'] > 0 and record['CNT_N'] > 0 :
+                for item in ['N', 'Y']:
+                    temp_record = record.copy()
+                    temp_record['OVRD_IN'] = item
+                    combined_list.append(temp_record)
+            else:
+                if record['CNT_Y'] > 0:
+                    record['OVRD_IN'] = 'Y'
+                elif record['CNT_N'] > 0:
+                    record['OVRD_IN'] = 'N'
+                combined_list.append(record)
+        return pd.DataFrame(combined_list)
+
+    @staticmethod
+    def get_completeness_indicator(row):
+        number_columns = ['RCRD_RCV_NB','RCRD_LD_NB','RCRD_RJCT_NB']
+        completeness_in = 'N'
+        if row.JOB_EXEC_STS_NM == 'COMPLETED':
+            row[number_columns] =  row[number_columns].fillna(0)
+            if (row.RCRD_RCV_NB == row.RCRD_LD_NB) and \
+                row.RCRD_RJCT_NB == 0:
+                return 'Y'
+        return completeness_in
+
+    def extract_and_transform(self):
+        """
+        """
+        ###################################### SEAL_ALL_DF #######################################
+        SEAL_ALL_DF = self.get_dataframe_from_source("SEAL", "QUERY")
+  
+        SEAL_DATA_DICT = self.flatten_seal_data(SEAL_ALL_DF)
+
+        RCRD_CLS_MV = ['CONFIG DATA ONLY','DATA IN TRANSIT ONLY','NO JPMC DATA']
+
+        RCRD_CLS_MV_PERMUTATIONS = RCRD_CLS_MV + [" | ".join(item) for item in permutations(RCRD_CLS_MV)]
+
+        FILTERED_SEAL_IDS = SEAL_ALL_DF[(
+            (
+                SEAL_ALL_DF["APPL_LOB_CD"].isin(['CCB']) | (
+                SEAL_ALL_DF["APPL_LOB_CD"].isin(['CT']) & SEAL_ALL_DF['APPL_TECH_GP_OWNR_NM'].isin(['CCB Risk']))
+            ) & 
+            (
+                SEAL_ALL_DF["APPL_SYS_STS_NM"].isin(['Operate','Retired'])
+            ) &
+            (
+                ~SEAL_ALL_DF['OVRL_HOST_TYPE_NM'].isin(['External'])
+            ) &
+            (
+                ~SEAL_ALL_DF['RCRD_CLS_MV'].isin(RCRD_CLS_MV_PERMUTATIONS)
+            ) 
+        )]['APPL_SYS_ID'].unique()
+
+        ############################### TECH_DATA_QLTY_OVRD_INS_DF ################################        
+
+        TECH_DATA_QLTY_OVRD_INS_DF = self.get_dataframe_from_source("TECH_DATA_QLTY_OVRD_INS", "QUERY")
+
+        TECH_DATA_QLTY_OVRD_INS_DF = self.flatten_ppln_ownr_appl_sys_mv(TECH_DATA_QLTY_OVRD_INS_DF)
+
+        ### filter out LOB SEALS
+        TECH_DATA_QLTY_OVRD_INS_DF = TECH_DATA_QLTY_OVRD_INS_DF[
+            TECH_DATA_QLTY_OVRD_INS_DF["APPL_SYS_ID"].isin(FILTERED_SEAL_IDS)
+        ]
+
+        TECH_DATA_QLTY_OVRD_INS_DF.rename(
+            columns={"OWNR_APPL_SYS_MV":"PPLN_OWNR_APPL_SYS_MV"}, 
+            inplace=True
+            )
+
+        TECH_DATA_QLTY_OVRD_INS_DF = TECH_DATA_QLTY_OVRD_INS_DF.drop_duplicates(subset=['PPLN_ID'])
+        
+        APPL_TDQ_OVRD_IN_CNTS_DF = TECH_DATA_QLTY_OVRD_INS_DF.copy()
+
+        APP_PPLN_IDS_DF = TECH_DATA_QLTY_OVRD_INS_DF.copy()
+         
+        del TECH_DATA_QLTY_OVRD_INS_DF["APPL_SYS_ID"]
+
+        ################################# FILE_TDQ_OVRD_IN_CNTS_QUERY #####################################
+
+        APPL_TDQ_OVRD_IN_CNTS_DF['FILE_TDQ_OVRD_IN_Y'] = APPL_TDQ_OVRD_IN_CNTS_DF.apply(
+            lambda x : 1 if x['FILE_TECH_DATA_QLTY_OVRD_IN'] == 'Y' else 0, axis=1
+        )
+
+        APPL_TDQ_OVRD_IN_CNTS_DF['FILE_TDQ_OVRD_IN_N'] = APPL_TDQ_OVRD_IN_CNTS_DF.apply(
+            lambda x : 1 if x['FILE_TECH_DATA_QLTY_OVRD_IN'] != 'Y' else 0, axis=1
+        )
+
+        TDQ_OVRD_IN_CNTS_DF = APPL_TDQ_OVRD_IN_CNTS_DF.groupby(["APPL_SYS_ID"]).agg(
+            CNT_Y=('FILE_TDQ_OVRD_IN_Y','sum'),
+            CNT_N=('FILE_TDQ_OVRD_IN_N','sum'),
+            ).reset_index()
+
+        FILE_TDQ_OVRD_IN_CNTS_DF = self.get_file_tdq_ovrd_in_cnts(
+            TDQ_OVRD_IN_CNTS_DF
+            )
+
+        ################################### MIN_EVT_PBLS_TS_DF ####################################
+        
+        MIN_EVT_PBLS_TS_DF = self.get_dataframe_from_source("MIN_EVT_PBLS_TS", "QUERY")
+        
+        MIN_EVT_PBLS_TS_DF = self.flatten_ppln_ownr_appl_sys_mv(MIN_EVT_PBLS_TS_DF)
+
+        MIN_EVT_PBLS_TS_DF = MIN_EVT_PBLS_TS_DF.groupby('APPL_SYS_ID')['EVT_PBLSH_TS'].min().reset_index()
+
+        MIN_EVT_PBLS_TS_DF.rename(columns={"EVT_PBLSH_TS":"MIN_EVT_PBLSH_TS"}, inplace=True)
+        
+        ### filter out LOB SEALS
+        MIN_EVT_PBLS_TS_DF = MIN_EVT_PBLS_TS_DF[
+            MIN_EVT_PBLS_TS_DF["APPL_SYS_ID"].isin(FILTERED_SEAL_IDS)
+        ]
+        
+        SEAL_INFO_COPY = SEAL_ALL_DF[["APPL_SYS_ID","APPL_SYS_NM","APPL_TECH_GP_OWNR_NM"]]
+
+        MIN_EVT_PBLS_TS_DF = pd.merge(
+            MIN_EVT_PBLS_TS_DF,
+            SEAL_INFO_COPY,
+            how='left', 
+            on='APPL_SYS_ID'
+            )
+
+        ## adding CNT_Y and CNT_N columns to MIN_EVT_PBLS_TS
+        MIN_EVT_PBLS_TS_DF = pd.merge(
+            MIN_EVT_PBLS_TS_DF,
+            TDQ_OVRD_IN_CNTS_DF,
+            how='left', 
+            on='APPL_SYS_ID'
+            )
+
+        ################################### DATA_PPLN_TXN_EVT_DF #################################
+
+        DATA_PPLN_TXN_EVT_DF = self.get_dataframe_from_source("DATA_PPLN_TXN_EVT", "QUERY")
+        ownr_seal_info_list = DATA_PPLN_TXN_EVT_DF["PPLN_OWNR_APPL_SYS_MV"].unique()
+        src_seal_info_list = DATA_PPLN_TXN_EVT_DF["PPLN_SRC_APPL_SYS_MV"].unique()
+        OWNR_SEAL_INFO_DF = self.flatten_ownr_appl_seal_data(ownr_seal_info_list, SEAL_DATA_DICT)
+        SRC_SEAL_INFO_DF = self.flatten_src_appl_seal_data(src_seal_info_list, SEAL_DATA_DICT)
+        DATA_PPLN_TXN_EVT_DF = pd.merge(
+            DATA_PPLN_TXN_EVT_DF,
+            OWNR_SEAL_INFO_DF,
+            how='left', 
+            on='PPLN_OWNR_APPL_SYS_MV'
+            )
+        DATA_PPLN_TXN_EVT_DF = pd.merge(
+            DATA_PPLN_TXN_EVT_DF,
+            SRC_SEAL_INFO_DF,
+            how='left', 
+            on='PPLN_SRC_APPL_SYS_MV'
+            )
+        
+        ### filter out FILTERED_SEAL_IDS
+        DATA_PPLN_TXN_EVT_DF = DATA_PPLN_TXN_EVT_DF[
+            DATA_PPLN_TXN_EVT_DF["PPLN_OWNR_APPL_SYS_MV"].str.contains(
+                '|'.join([ str(sid) for sid in FILTERED_SEAL_IDS])
+                )
+            ]
+		
+        ### COMPLETENESS_CHECK
+        DATA_PPLN_TXN_EVT_DF['COMPLETENESS_IN'] = DATA_PPLN_TXN_EVT_DF.apply(
+            self.get_completeness_indicator, axis=1
+            )
+
+        DATA_PPLN_TXN_EVT_DF['CORRECTNESS_IN'] = DATA_PPLN_TXN_EVT_DF['COMPLETENESS_IN']
+
+        #################################### APP_PPLN_IDS_DF #####################################
+
+        APP_PPLN_IDS_DF = APP_PPLN_IDS_DF[["APPL_SYS_ID", "PPLN_ID", "FILE_TECH_DATA_QLTY_OVRD_IN"]]
+
+        #################################### LATEST_EVT_TDQ_OVRD_IN_DF #####################################
+
+        LATEST_PPLN_RGST_INFO_DF = self.get_dataframe_from_source("LATEST_PPLN_RGST_INFO", "QUERY")
+
+        LATEST_EVT_TDQ_OVRD_IN_DF = pd.merge(
+            LATEST_PPLN_RGST_INFO_DF,
+            TECH_DATA_QLTY_OVRD_INS_DF,
+            how='left', 
+            on='PPLN_ID'
+            )
+
+        #################################### SEAL_ELIG_TDQ_DF #####################################
+
+        SEAL_ELIG_TDQ_DF = SEAL_ALL_DF[
+            SEAL_ALL_DF["APPL_SYS_ID"].isin([int(i) for i in FILTERED_SEAL_IDS])
+        ][
+            [
+                "APPL_SYS_ID", 
+                "APPL_TECH_GP_OWNR_NM", 
+                "APPL_SYS_STS_NM", 
+                "APPL_LOB_CD",
+                "OVRL_HOST_TYPE_NM",
+                "RCRD_CLS_MV", 
+                "APPL_SYS_NM", 
+                "APPL_OWNR_SID"
+            ]
+        ]
+
+        tables_mapper = {
+            "TDQ_OVRD_IN_RPT" : TECH_DATA_QLTY_OVRD_INS_DF,
+            "DATA_PPLN_TXN_EVT_RPT": DATA_PPLN_TXN_EVT_DF,
+            "MIN_EVT_PBLS_TS_RPT" : MIN_EVT_PBLS_TS_DF,
+            "FILE_TDQ_OVRD_IN_CNTS_RPT": FILE_TDQ_OVRD_IN_CNTS_DF,
+            "APP_PPLN_IDS_RPT" : APP_PPLN_IDS_DF,
+            "SEAL_ELIG_TDQ_RPT": SEAL_ELIG_TDQ_DF,
+            "LATEST_EVT_TDQ_OVRD_IN_RPT": LATEST_EVT_TDQ_OVRD_IN_DF
+        }
+        return tables_mapper
+
+    def generate_report(self):
+        """
+        """
+        try:
+            self.get_db_conn()
+            self.fetch_report_config_id()
+            self.insert_rpt_exec_rec()
+            tables_mapper = self.extract_and_transform()
+            for table_name, table_dataframe  in tables_mapper.items():
+                self.report_config.TRGT_TBL_NM = table_name
+                self.rows_count_to_load = self.rows_count_to_load + (table_dataframe.shape)[0]
+                result_df = self.generic_dataframe_wrapper(table_dataframe)
+                self.load_result_to_table(result_df)
+                self.purge_historical_data_from_table()
+            self.execution_status = "COMPLETED"
+        except Exception as e:
+            self.log_report_generation_error(
+                self.report_config.RPT_CONFIG_CD, 
+                self.exec_id,
+                str(e)
+            )
+            self.execution_status = "ERROR"
+        self.update_rpt_exec_rec(self.execution_status, self.rows_count_to_load)
+        self.clean_up()
+        return self.execution_status
+
+@data_pipeline_report_app.route("/data_pipeline_report")
+def data_pipeline_report():
+    """
+    """
+    obj = DataPipelineReport(request)
+    execution_status = obj.generate_report()
+    if execution_status == "ERROR":
+        status_msg, status_code = "Failed while generating report", 500
+    else:
+        status_msg, status_code = "Successfully generated report", 200
+    return status_msg, status_code
+
+
