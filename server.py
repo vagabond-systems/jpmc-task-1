@@ -338,3 +338,51 @@ if __name__ == '__main__':
         print("No data found, generating...")
         generate_csv()
     run(App())
+
+
+
+
+def appl_lvl_class_code_comparision(group):
+        aset_ids_count = list(group["ASET_ID"].values)
+
+        group["AVLB_DATA_STOR_COUNT"] = len(aset_ids_count)
+        group["DATA_STOR_COUNT_WITH_MATCHING_CLS_CD"] = (
+            group["CLS_CD_COMPARISION_IND"].eq("Yes").sum()
+        )
+        group["DATA_STOR_COUNT_WITH_NOT_MATCHING_CLS_CD"] = (
+            group["CLS_CD_COMPARISION_IND"].eq("No").sum()
+        )
+
+        if "No" in list(group["DATA_STOR_HAS_CLS_CD"].values):
+            group["APPL_LVL_CLS_CD_COMP_IND"] = False
+        else:
+            # Check if RCRD_CLS_CD is valid for comparision
+            group["VLD_RCRD_CLS_CD"] = group["DATA_STOR_HAS_CLS_CD"] == "Yes"
+            # Filter the group to only include the rows with not-null record class codes
+            filtered_group = group[group["VLD_RCRD_CLS_CD"]]
+            if filtered_group.empty:
+                # A new column indicating if all the RCRD_CLS_CD match the RETN_CLS_MV
+                group["APPL_LVL_CLS_CD_COMP_IND"] = False
+            else:
+                try:
+                    all_record_class_match = (
+                        filtered_group["RCRD_CLS_CD"]
+                        .isin(filtered_group["RETN_CLS_MV"])
+                        .all()
+                    )
+                    # A new column indicating if all the RCRD_CLS_CD match the RETN_CLS_MV
+                    group["APPL_LVL_CLS_CD_COMP_IND"] = all_record_class_match
+                except Exception as e:
+                    current_app.logger.error(
+                        "Error occured while executing the function for {0} with error {1}".format(
+                            group["APPL_SYS_ID"], str(e)
+                        )
+                    )
+            group = group.drop("VLD_RCRD_CLS_CD", axis=1)
+        match_map = {True: "Yes", False: "No"}
+        group["APPL_LVL_CLS_CD_COMP_IND"] = group["APPL_LVL_CLS_CD_COMP_IND"].map(
+            match_map
+        )
+        return group
+
+
