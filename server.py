@@ -338,31 +338,3 @@ if __name__ == '__main__':
         print("No data found, generating...")
         generate_csv()
     run(App())
-
-
-
-import pandas as pd
-pd.set_option('display.max_columns', None)  # or 1000
-pd.set_option('display.max_rows', None)  # or 1000
-pd.set_option('display.max_colwidth', None)
-
-data = [
-    ("14775","Tan,JuatMeng","O476533",None,"Data Owner Delegate"),
-    ("14775","Torres,Sylvia","E049225",None,"Data Owner Delegate"),
-    ("14775","Moore,Rachel L","E049980",None,"Data Owner Delegate"),
-    ("14775","Torres,Sylvia","E049225",None,"Data Owner Delegate"),
-    ("14775","Tan,JuatMeng","R732132","R732132","Data Owner"),
-    ("14775","Torres,Sylvia","E049225",None,"Data Owner Delegate"),
-    ("14790","Engel,Patrick John","N581213",None,"Data Owner Delegate"),
-    ("14790","Devarapalli,Ravi Krishna","F389675",None,"Data Owner Delegate"),
-    ("14790","Engel,Patrick John","N581213",None,"Data Owner Delegate"),
-    ("14790","Devarapalli,Ravi Krishna","F389675","F389675","Data Owner"),
-    ("14790","Childers,Kendra","O274762",None,"Data Owner Delegate"),
-    ("14790","Engel,Patrick John","N581213",None,"Data Owner Delegate"),
-]
-
-DATA_OWNR_INFO_DF = pd.DataFrame(data)
-DATA_OWNR_INFO_DF.columns = ["APPL_SYS_ID","USER_NM","USER_SID","DATA_OWNR_SID","USER_ROLE_TYPE"]
-
-DATA_OWNR_INFO_DF["DATA_OWNR_NM"] = DATA_OWNR_INFO_DF["USER_NM"].where(DATA_OWNR_INFO_DF["DATA_OWNR_SID"].notnull(), None)
-print(f"DATA_OWNR_INFO_DF is : {DATA_OWNR_INFO_DF}")
